@@ -18,7 +18,7 @@ import { JoinOrganizationPage } from './pages/auth/JoinOrganizationPage';
 import { SignUpPage } from './pages/auth/SignupPage';
 import { CreateOrganizationPage } from './pages/auth/CreateOrganization';
 import PricingPage from './components/pricing/PricingPage';
-import { useSubscriptionStore } from './store/useSubscriptionStore';
+import { useSubscriptionStore } from './stores/useSubscriptionStore';
 import { useUser } from '@clerk/clerk-react';
 
 const DashboardContent = () => {

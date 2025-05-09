@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
-import { useSubscriptionStore } from '../store/useSubscriptionStore';
+import { useSubscriptionStore } from '../stores/useSubscriptionStore';
 
 export const withAuth = (Component: React.ComponentType) => {
   return () => {

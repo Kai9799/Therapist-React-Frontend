@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { useSignUp, useSignIn } from '@clerk/clerk-react';
+import React, { useEffect, useState } from 'react';
+import { useSignUp, useAuth, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { AlertCircle, Info } from 'lucide-react';
+import { useSyncUserToSupabase } from '../../hooks/useSyncUserToSupabase';
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
   const { isLoaded: signUpLoaded, signUp, setActive } = useSignUp();
-  const { isLoaded: signInLoaded, signIn } = useSignIn();
+  const { isSignedIn, getToken } = useAuth();
+  const { user, isLoaded } = useUser();
 
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [accountType, setAccountType] = useState<'solo' | 'organization'>('solo');
@@ -19,23 +21,15 @@ export const SignUpPage: React.FC = () => {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [redirectOnSignIn, setRedirectOnSignIn] = useState(true);
+  const syncUserToSupabase = useSyncUserToSupabase();
 
-  const handleGoogle = async () => {
-    if (!signInLoaded || !signIn || !setActive) return;
-    setLoading(true);
-    try {
-      const { createdSessionId } = await signIn.create({
-        strategy: 'oauth_google',
-        redirectUrl: `${window.location.origin}${accountType === 'organization' ? '/create-organization' : '/app'}`,
-      });
-      await setActive({ session: createdSessionId });
-      navigate(accountType === 'organization' ? '/create-organization' : '/app');
-    } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage || 'Google sign-up failed');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (isSignedIn && redirectOnSignIn) {
+      navigate('/');
     }
-  };
+  }, [isSignedIn, redirectOnSignIn, navigate]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +46,7 @@ export const SignUpPage: React.FC = () => {
         password,
         unsafeMetadata: { accountType },
       });
+      setRedirectOnSignIn(false);
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setStep('verify');
     } catch (err: any) {
@@ -61,6 +56,35 @@ export const SignUpPage: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (isLoaded && user) {
+      (async () => {
+        setSyncing(true);
+        try {
+          const token = await getToken();
+
+          if (!token) throw new Error('No Supabase token returned from Clerk');
+
+          await syncUserToSupabase({
+            clerkId: user.id,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.emailAddresses[0]?.emailAddress || '',
+            username: user.username || '',
+            supabaseToken: token,
+          });
+
+          navigate(accountType === 'organization' ? '/create-organization' : '/pricing');
+        } catch (err) {
+          console.error('Error syncing user to Supabase:', err);
+          setError('Error syncing user to Supabase');
+        } finally {
+          setSyncing(false);
+        }
+      })();
+    }
+  }, [user, isLoaded]);
+
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signUpLoaded || !signUp || !setActive) return;
@@ -69,9 +93,9 @@ export const SignUpPage: React.FC = () => {
 
     try {
       const attempt = await signUp.attemptEmailAddressVerification({ code });
+
       if (attempt.status === 'complete') {
         await setActive({ session: attempt.createdSessionId });
-        navigate(accountType === 'organization' ? '/create-organization' : '/pricing');
       } else {
         setError('Verification incomplete');
       }
@@ -88,6 +112,13 @@ export const SignUpPage: React.FC = () => {
       subtitle="Start managing your therapy practice"
       showBackButton
     >
+      {syncing && (
+        <div className="flex justify-center items-center space-x-2">
+          <div className="animate-spin border-t-4 border-blue-600 border-solid rounded-full w-8 h-8"></div>
+          <span></span>
+        </div>
+      )}
+
       {step === 'form' ? (
         <div className="space-y-6">
           {error && (
@@ -96,22 +127,6 @@ export const SignUpPage: React.FC = () => {
               <p>{error}</p>
             </div>
           )}
-
-          {/* Google Button */}
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium bg-white hover:bg-gray-50"
-          >
-            {loading ? 'Please wait...' : 'Sign up with Google'}
-          </button>
-
-          <div className="relative text-center">
-            <span className="px-2 bg-white text-sm text-gray-500">Or continue with</span>
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-          </div>
 
           {/* Custom Sign-Up Form */}
           <form onSubmit={handleEmailSubmit} className="space-y-4">
