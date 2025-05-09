@@ -27,6 +27,7 @@ const DashboardContent = () => {
   const isOrgAdmin = false;
 
   const handleNavigate = (view: string) => {
+
     setActiveView(view);
     switch (view) {
       case 'planner':

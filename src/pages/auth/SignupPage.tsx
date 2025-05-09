@@ -1,4 +1,3 @@
-// src/pages/SignUpPage.tsx
 import React, { useState } from 'react';
 import { useSignUp, useSignIn } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
