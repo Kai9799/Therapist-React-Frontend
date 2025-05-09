@@ -2,7 +2,7 @@ import React from 'react';
 import HowItWorks from './HowItWorks';
 import TimeSavingSection from './TimeSavingSection';
 import Features from './Features';
-import Pricing from '../components/Pricing';
+import { Pricing } from '../components/Pricing';
 import Testimonials from './Testimonials';
 import Footer from './Footer';
 import HeroSection from './HeroSection';

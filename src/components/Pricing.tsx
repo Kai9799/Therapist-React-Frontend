@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useUser, useOrganization } from '@clerk/clerk-react';
 import { CategorizedPlans } from '../types/CategorizedPlans';
 import { Plan } from '../types/Plan';
 import PlanCard from './pricing/PlanCard';
+import { useUserStore } from '../stores/useUserStore';
 
-const Pricing: React.FC = () => {
+export const Pricing: React.FC = () => {
     const [plans, setPlans] = useState<CategorizedPlans>({ individual: [], company: [] });
     const [loading, setLoading] = useState<boolean>(true);
-    const { isLoaded: userLoaded, user } = useUser();
-    const { isLoaded: orgLoaded, organization } = useOrganization();
+    const { user } = useUserStore();
 
-    const isOrgUser = !!organization || (user?.organizationMemberships?.length ?? 0) > 0;
-    const pricingType: 'individual' | 'company' = isOrgUser ? 'company' : 'individual';
+    const pricingType: 'individual' | 'company' = user?.organizationId ? 'company' : 'individual';
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -62,7 +60,7 @@ const Pricing: React.FC = () => {
         fetchPlans();
     }, []);
 
-    if (!userLoaded || !orgLoaded) {
+    if (!user) {
         return (
             <div className="flex justify-center items-center space-x-2 mt-10">
                 <div className="animate-spin rounded-full border-t-4 border-indigo-600 w-12 h-12"></div>
@@ -76,11 +74,9 @@ const Pricing: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="lg:text-center">
                     <h2 className="text-base text-indigo-600 font-semibold tracking-wide uppercase text-center mb-2">Pricing</h2>
-                    {/* Only show toggle if user is allowed to pick plan type */}
-                    {!isOrgUser && (
+                    {!user.organizationId && (
                         <div className="flex justify-center mb-8">
                             <div className="bg-gray-100 p-1 rounded-xl inline-flex">
-                                {/* Future-proofing for allowing switch manually */}
                                 <button
                                     className="px-6 py-2 rounded-lg text-sm font-medium transition-colors bg-white text-gray-900 shadow-sm"
                                     disabled
@@ -108,5 +104,3 @@ const Pricing: React.FC = () => {
         </div>
     );
 };
-
-export default Pricing;

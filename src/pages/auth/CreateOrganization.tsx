@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { AlertCircle } from 'lucide-react';
+import { useUserStore } from '../../stores/useUserStore';
 
 export const CreateOrganizationPage: React.FC = () => {
     const navigate = useNavigate();
     const { getToken, isSignedIn } = useAuth();
     const { user } = useUser();
+    const updateUser = useUserStore((state: any) => state.updateUser);
 
     const [name, setName] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,11 @@ export const CreateOrganizationPage: React.FC = () => {
             );
 
             if (res.data.status === 'success') {
+                const { id, clerk_id, name, created_by } = res.data.data;
+                updateUser({
+                    organizationId: clerk_id,
+                    organizationName: name,
+                });
                 navigate('/pricing');
             } else {
                 setError(res.data.message);

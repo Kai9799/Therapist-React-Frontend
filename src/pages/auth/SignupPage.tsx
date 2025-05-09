@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { AlertCircle, Info } from 'lucide-react';
 import { useSyncUserToSupabase } from '../../hooks/useSyncUserToSupabase';
+import { useUserStore } from '../../stores/useUserStore';
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export const SignUpPage: React.FC = () => {
   const [syncing, setSyncing] = useState(false);
   const [redirectOnSignIn, setRedirectOnSignIn] = useState(true);
   const syncUserToSupabase = useSyncUserToSupabase();
+  const setUserStore = useUserStore((state) => state.setUser);
 
   useEffect(() => {
     if (isSignedIn && redirectOnSignIn) {
@@ -71,6 +73,16 @@ export const SignUpPage: React.FC = () => {
             lastName: user.lastName || '',
             email: user.emailAddresses[0]?.emailAddress || '',
             username: user.username || '',
+            supabaseToken: token,
+          });
+
+          setUserStore({
+            id: user.id,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.emailAddresses[0]?.emailAddress || '',
+            username: user.username || '',
+            clerkId: user.id,
             supabaseToken: token,
           });
 
