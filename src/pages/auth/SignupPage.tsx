@@ -67,14 +67,6 @@ export const SignUpPage: React.FC = () => {
 
           if (!token) throw new Error('No Supabase token returned from Clerk');
 
-          await syncUserToSupabase({
-            clerkId: user.id,
-            firstName: user.firstName || '',
-            lastName: user.lastName || '',
-            email: user.emailAddresses[0]?.emailAddress || '',
-            username: user.username || '',
-          });
-
           setUserStore({
             id: user.id,
             firstName: user.firstName || '',
@@ -83,6 +75,15 @@ export const SignUpPage: React.FC = () => {
             username: user.username || '',
             clerkId: user.id,
             supabaseToken: token,
+            accountType
+          });
+
+          await syncUserToSupabase({
+            clerkId: user.id,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.emailAddresses[0]?.emailAddress || '',
+            username: user.username || '',
           });
 
           navigate(accountType === 'organization' ? '/create-organization' : '/pricing');
