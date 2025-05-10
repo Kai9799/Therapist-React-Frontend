@@ -6,7 +6,7 @@ import { AlertCircle, Info } from 'lucide-react';
 import { useSyncUserToSupabase } from '../../hooks/useSyncUserToSupabase';
 import { useUserStore } from '../../stores/useUserStore';
 
-export const SignUpPage: React.FC = () => {
+export const SignUpPage: React.FC = () => { 
   const navigate = useNavigate();
   const { isLoaded: signUpLoaded, signUp, setActive } = useSignUp();
   const { isSignedIn, getToken } = useAuth();
