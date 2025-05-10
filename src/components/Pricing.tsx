@@ -7,9 +7,8 @@ import { useUserStore } from '../stores/useUserStore';
 export const Pricing: React.FC = () => {
     const [plans, setPlans] = useState<CategorizedPlans>({ individual: [], company: [] });
     const [loading, setLoading] = useState<boolean>(true);
+    const [selectedTab, setSelectedTab] = useState<'individual' | 'company'>('individual');
     const { user } = useUserStore();
-
-    const pricingType: 'individual' | 'company' = user?.organizationId ? 'company' : 'individual';
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -60,28 +59,39 @@ export const Pricing: React.FC = () => {
         fetchPlans();
     }, []);
 
-    if (!user) {
-        return (
-            <div className="flex justify-center items-center space-x-2 mt-10">
-                <div className="animate-spin rounded-full border-t-4 border-indigo-600 w-12 h-12"></div>
-                <span className="text-lg text-gray-600">Loading user info...</span>
-            </div>
-        );
+    const handleTabClick = (tab: 'individual' | 'company') => {
+        setSelectedTab(tab);
+    };
+
+    let displayedPlans: Plan[] = [];
+    if (user) {
+        displayedPlans = plans[user.accountType === 'organization' ? 'company' : 'individual'];
+    } else {
+        displayedPlans = plans[selectedTab];
     }
 
     return (
         <div className="bg-gray-50 py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="lg:text-center">
-                    <h2 className="text-base text-indigo-600 font-semibold tracking-wide uppercase text-center mb-2">Pricing</h2>
-                    {!user.organizationId && (
+                    <h2 className="text-base text-indigo-600 font-semibold tracking-wide uppercase text-center mb-2">
+                        Pricing
+                    </h2>
+
+                    {!user && (
                         <div className="flex justify-center mb-8">
                             <div className="bg-gray-100 p-1 rounded-xl inline-flex">
                                 <button
-                                    className="px-6 py-2 rounded-lg text-sm font-medium transition-colors bg-white text-gray-900 shadow-sm"
-                                    disabled
+                                    className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${selectedTab === 'individual' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-900'} shadow-sm`}
+                                    onClick={() => handleTabClick('individual')}
                                 >
                                     Individual
+                                </button>
+                                <button
+                                    className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${selectedTab === 'company' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-900'} shadow-sm`}
+                                    onClick={() => handleTabClick('company')}
+                                >
+                                    Company
                                 </button>
                             </div>
                         </div>
@@ -95,7 +105,7 @@ export const Pricing: React.FC = () => {
                     </div>
                 ) : (
                     <div className="mt-10 space-y-4 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-4xl lg:mx-auto">
-                        {plans[pricingType].map((plan) => (
+                        {displayedPlans.map((plan) => (
                             <PlanCard key={plan.id} plan={plan} />
                         ))}
                     </div>

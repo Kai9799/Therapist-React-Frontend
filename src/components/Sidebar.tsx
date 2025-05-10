@@ -1,7 +1,16 @@
-import React from 'react';
-import { Brain, Users, Calendar, LayoutDashboard, FileText, BookOpen, UserCircle } from 'lucide-react';
+import React, { useEffect } from 'react';
+import {
+  Brain,
+  Users,
+  Calendar,
+  LayoutDashboard,
+  FileText,
+  BookOpen,
+  UserCircle
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { UserButton, useUser } from '@clerk/clerk-react';
+import { UserButton, useAuth } from '@clerk/clerk-react';
+import { useUserStore } from '../stores/useUserStore';
 
 interface SidebarProps {
   activeView: string;
@@ -10,6 +19,14 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate, isOrgAdmin }) => {
+  const { clearUser } = useUserStore();
+  const { isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (isSignedIn === false) {
+      clearUser();
+    }
+  }, [isSignedIn, clearUser]);
 
   const therapistItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },

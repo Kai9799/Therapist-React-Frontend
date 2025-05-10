@@ -7,16 +7,14 @@ export const useSyncUserToSupabase = () => {
         lastName,
         email,
         username,
-        supabaseToken,
     }: {
         clerkId: string;
         firstName: string;
         lastName: string;
         email: string;
         username: string;
-        supabaseToken: string;
     }) => {
-        const supabaseClient = await createClerkSupabaseClient(supabaseToken);
+        const supabaseClient = await createClerkSupabaseClient();
 
         const { error, data } = await supabaseClient
             .from('users')

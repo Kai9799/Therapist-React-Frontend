@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth, useClerk, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthLayout } from '../../components/auth/AuthLayout';
@@ -15,6 +15,7 @@ export const CreateOrganizationPage: React.FC = () => {
     const [name, setName] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const { setActive } = useClerk();
 
     const handleCreateOrganization = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,7 +33,8 @@ export const CreateOrganizationPage: React.FC = () => {
             );
 
             if (res.data.status === 'success') {
-                const { id, clerk_id, name, created_by } = res.data.data;
+                const { id, clerk_id, name, created_by } = res.data;
+                setActive({ organization: clerk_id });
                 updateUser({
                     organizationId: clerk_id,
                     organizationName: name,

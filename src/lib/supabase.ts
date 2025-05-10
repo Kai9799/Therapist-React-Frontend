@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { useUserStore } from '../stores/useUserStore';
 import { clerkInstance } from './clerk';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -11,11 +12,28 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
-export const createClerkSupabaseClient = async (
-  existingToken?: string
-) => {
+const getTokenFromStoreOrFallback = async (): Promise<string | null> => {
+  const { supabaseToken } = useUserStore.getState().user || {};
+
+  if (supabaseToken) return supabaseToken;
+
+  const session = clerkInstance.session;
+
+  if (!session || session.status !== 'active') {
+    throw new Error('No active session found');
+  }
+
+  const token = await session.getToken({
+    template: 'supabase',
+    skipCache: true,
+  });
+
+  return token || null;
+};
+
+export const createClerkSupabaseClient = async () => {
   try {
-    const token = existingToken || await getSupabaseTokenFromSession();
+    const token = await getTokenFromStoreOrFallback();
 
     if (!token) {
       throw new Error('No Supabase token available');
@@ -28,41 +46,12 @@ export const createClerkSupabaseClient = async (
         },
       },
       auth: {
-        persistSession: false,
-        autoRefreshToken: false,
+        persistSession: true,
+        autoRefreshToken: true,
       },
     });
   } catch (error) {
     console.error('Error creating authenticated Supabase client:', error);
     throw new Error('Failed to create authenticated Supabase client');
   }
-};
-
-const getSupabaseTokenFromSession = async (): Promise<string | null> => {
-  const waitForClerkSession = async (
-    maxAttempts = 20,
-    delayMs = 200
-  ): Promise<ReturnType<any> | null> => {
-    for (let i = 0; i < maxAttempts; i++) {
-      const session = clerkInstance.session;
-      if (session !== undefined) {
-        return session;
-      }
-      await new Promise((res) => setTimeout(res, delayMs));
-    }
-    throw new Error('Clerk session did not become available in time');
-  };
-
-  const session = await waitForClerkSession();
-
-  if (!session || session.status !== 'active') {
-    throw new Error('No active authenticated session found');
-  }
-
-  const token = await session.getToken({
-    template: 'supabase',
-    skipCache: true,
-  });
-
-  return token || null;
 };

@@ -20,6 +20,7 @@ import { CreateOrganizationPage } from './pages/auth/CreateOrganization';
 import PricingPage from './components/pricing/PricingPage';
 import { useSubscriptionStore } from './stores/useSubscriptionStore';
 import { useUser } from '@clerk/clerk-react';
+import { useUserStore } from './stores/useUserStore';
 
 const DashboardContent = () => {
   const navigate = useNavigate();
@@ -67,9 +68,11 @@ const App = () => {
   const InitSubscriptionState = () => {
     const { user } = useUser();
     const setSubscriptionData = useSubscriptionStore((s) => s.setSubscriptionData);
+    const setUser = useUserStore((state) => state.setUser);
 
     useEffect(() => {
-      if (user?.publicMetadata) {
+      if (user) {
+        // Sync subscription data
         const metadata = user.publicMetadata as any;
         const status = metadata.subscriptionStatus;
         const isValid = status === 'active' || status === 'trialing';
@@ -81,7 +84,7 @@ const App = () => {
           trialEndsAt: metadata.trialEndsAt,
         });
       }
-    }, [user]);
+    }, [user, setUser, setSubscriptionData]);
 
     return null;
   };

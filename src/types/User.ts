@@ -3,9 +3,10 @@ export interface User {
     firstName: string;
     lastName: string;
     email: string;
-    username?: string;
+    username: string;
     clerkId: string;
     supabaseToken: string;
     organizationId?: string;
     organizationName?: string;
+    accountType: 'solo' | 'organization';
 }

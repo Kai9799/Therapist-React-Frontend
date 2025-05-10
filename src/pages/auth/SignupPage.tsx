@@ -73,7 +73,6 @@ export const SignUpPage: React.FC = () => {
             lastName: user.lastName || '',
             email: user.emailAddresses[0]?.emailAddress || '',
             username: user.username || '',
-            supabaseToken: token,
           });
 
           setUserStore({
