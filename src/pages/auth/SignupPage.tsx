@@ -20,7 +20,7 @@ export const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); 
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [redirectOnSignIn, setRedirectOnSignIn] = useState(true);
