@@ -10,7 +10,7 @@ export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
   const { isLoaded: signUpLoaded, signUp, setActive } = useSignUp();
   const { isSignedIn, getToken } = useAuth();
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useUser(); 
 
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [accountType, setAccountType] = useState<'solo' | 'organization'>('solo');
